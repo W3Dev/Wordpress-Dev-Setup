@@ -1,0 +1,49 @@
+version: '3.3'
+
+services:
+    db:
+        image: mysql:5.7
+        volumes:
+            - "./DATA/mysql:/var/lib/mysql:rw"
+        restart: always
+        environment: 
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: wordpress
+            MYSQL_USER: root
+            MYSQL_PASSWORD: password
+    
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        depends_on: 
+            - db
+        links: 
+            - db:mysql # Hostname "mysql" in this docker resolved to network address of "db" service
+        ports:
+            - 9081:80
+        environment: 
+            UPLOAD_LIMIT: 100M
+            PMA_HOST: 'mysql'
+            PMA_USER: root
+            PMA_PASSWORD: password
+
+    wordpress:
+        image: wordpress
+        depends_on: 
+            - db
+        restart: always
+        ports:
+          - 8080:80
+        links: 
+          - db:mysql
+        environment:
+          WORDPRESS_DB_HOST: db
+          WORDPRESS_DB_USER: root
+          WORDPRESS_DB_PASSWORD: password
+          WORDPRESS_DB_NAME: wordpress
+          WP_SITEURL: http://localhost:8080
+          WP_HOME: http://localhost:8080
+        volumes:
+#         - ./wordpress/wp-config.php:/var/www/html/wp-config.php
+          - "./wordpress:/var/www/html:rw"
+
+
